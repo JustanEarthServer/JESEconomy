@@ -18,6 +18,7 @@ package net.tnemc.paper.hook.economy;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import org.bukkit.Bukkit;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.tnemc.core.EconomyManager;
@@ -346,6 +347,11 @@ public class TNEVault implements Economy {
       return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Cannot withdraw negative funds.");
     }
 
+    if(!Bukkit.isPrimaryThread()) {
+      return MainThread.call(()->withdrawPlayer(name, world, amount),
+                             ()->new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Server is busy, try again."));
+    }
+
     final Optional<Account> account = TNECore.eco().account().findAccount(name);
 
     if(account.isEmpty()) {
@@ -428,6 +434,11 @@ public class TNEVault implements Economy {
 
     if(amount < 0 || !Double.isFinite(amount)) {
       return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Cannot deposit negative funds.");
+    }
+
+    if(!Bukkit.isPrimaryThread()) {
+      return MainThread.call(()->depositPlayer(name, world, amount),
+                             ()->new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Server is busy, try again."));
     }
 
     final Optional<Account> account = TNECore.eco().account().findAccount(name);

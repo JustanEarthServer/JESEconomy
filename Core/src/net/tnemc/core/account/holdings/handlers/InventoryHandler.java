@@ -23,6 +23,7 @@ import net.tnemc.core.TNECore;
 import net.tnemc.core.account.Account;
 import net.tnemc.core.account.PlayerAccount;
 import net.tnemc.core.account.holdings.HoldingsEntry;
+import net.tnemc.core.account.holdings.OfflineItemLedger;
 import net.tnemc.core.account.holdings.HoldingsHandler;
 import net.tnemc.core.currency.Currency;
 import net.tnemc.core.currency.CurrencyType;
@@ -81,6 +82,14 @@ public class InventoryHandler implements HoldingsHandler {
    */
   @Override
   public boolean setHoldings(final Account account, final String region, final Currency currency, final CurrencyType type, final BigDecimal amount) {
+
+    if(account.isPlayer() && !PluginCore.server().online(account.getIdentifier().toString())) {
+
+      //Offline: remember the change so it can be applied to the real items on join.
+      final BigDecimal previous = account.getWallet().getHoldings(region, currency.getUid(), identifier())
+              .map(HoldingsEntry::getAmount).orElse(BigDecimal.ZERO);
+      OfflineItemLedger.record(account.getIdentifier(), region, currency.getUid(), identifier(), amount.subtract(previous));
+    }
 
     account.getWallet().setHoldings(new HoldingsEntry(region, currency.getUid(), amount, identifier()));
 

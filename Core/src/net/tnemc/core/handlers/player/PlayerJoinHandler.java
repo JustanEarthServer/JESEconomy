@@ -23,11 +23,13 @@ import net.tnemc.core.TNECore;
 import net.tnemc.core.account.Account;
 import net.tnemc.core.account.PlayerAccount;
 import net.tnemc.core.account.holdings.HoldingsEntry;
+import net.tnemc.core.account.holdings.OfflineItemLedger;
 import net.tnemc.core.api.response.AccountAPIResponse;
 import net.tnemc.core.channel.SyncHandler;
 import net.tnemc.core.config.DataConfig;
 import net.tnemc.core.config.MainConfig;
 import net.tnemc.core.currency.Currency;
+import net.tnemc.core.currency.calculations.CalculationData;
 import net.tnemc.core.currency.item.ItemCurrency;
 import net.tnemc.core.manager.TransactionManager;
 import net.tnemc.core.transaction.Receipt;
@@ -41,6 +43,7 @@ import net.tnemc.plugincore.core.id.UUIDPair;
 import net.tnemc.plugincore.core.io.message.MessageData;
 import net.tnemc.plugincore.core.utils.HandlerResponse;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -189,6 +192,22 @@ public class PlayerJoinHandler {
             } else {
 
               for(final HoldingsEntry entry : acc.get().getHoldings(region, currency.getUid())) {
+
+                final boolean inventory = entry.getHandler().equals(EconomyManager.INVENTORY_ONLY);
+                if(inventory || entry.getHandler().equals(EconomyManager.E_CHEST)) {
+
+                  //Use the items the player actually has, plus anything that changed while they
+                  //were offline. The stored wallet value can be older than the saved inventory if
+                  //the server didn't shut down cleanly, and trusting it would recreate items.
+                  final BigDecimal actual = TNECore.instance().itemCalculations().calculateHoldings(
+                          new CalculationData<>(itemCurrency, provider.inventory().getInventory(!inventory), id));
+
+                  BigDecimal target = actual.add(OfflineItemLedger.take(id, region, currency.getUid(), entry.getHandler()));
+                  if(target.signum() < 0) target = BigDecimal.ZERO;
+
+                  acc.get().setHoldings(new HoldingsEntry(region, currency.getUid(), target, entry.getHandler()), entry.getHandler());
+                  continue;
+                }
 
                 acc.get().setHoldings(entry, entry.getHandler());
               }

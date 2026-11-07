@@ -18,6 +18,7 @@ package net.tnemc.paper.hook.economy;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import org.bukkit.Bukkit;
 import net.milkbowl.vault2.economy.AccountPermission;
 import net.milkbowl.vault2.economy.Economy;
 import net.milkbowl.vault2.economy.EconomyResponse;
@@ -422,6 +423,11 @@ public class TNEVaultUnlocked implements Economy {
       return new EconomyResponse(BigDecimal.ZERO, BigDecimal.ZERO, ResponseType.FAILURE, "Cannot withdraw negative funds.");
     }
 
+    if(!Bukkit.isPrimaryThread()) {
+      return MainThread.call(()->withdraw(pluginName, uuid, worldName, currencyId, amount),
+                             ()->new EconomyResponse(BigDecimal.ZERO, BigDecimal.ZERO, ResponseType.FAILURE, "Server is busy, try again."));
+    }
+
     final Optional<Account> account = TNECore.eco().account().findAccount(uuid.toString());
     final Optional<Currency> currency = TNECore.eco().currency().find(currencyId);
 
@@ -474,6 +480,11 @@ public class TNEVaultUnlocked implements Economy {
 
     if(amount == null || amount.signum() < 0) {
       return new EconomyResponse(BigDecimal.ZERO, BigDecimal.ZERO, ResponseType.FAILURE, "Cannot deposit negative funds.");
+    }
+
+    if(!Bukkit.isPrimaryThread()) {
+      return MainThread.call(()->deposit(pluginName, uuid, worldName, currencyId, amount),
+                             ()->new EconomyResponse(BigDecimal.ZERO, BigDecimal.ZERO, ResponseType.FAILURE, "Server is busy, try again."));
     }
 
     final Optional<Account> account = TNECore.eco().account().findAccount(uuid.toString());
