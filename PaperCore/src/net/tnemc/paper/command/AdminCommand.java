@@ -33,7 +33,6 @@ import net.tnemc.plugincore.core.compatibility.log.DebugLevel;
 import net.tnemc.plugincore.core.compatibility.scheduler.ChoreExecution;
 import net.tnemc.plugincore.core.compatibility.scheduler.ChoreTime;
 import net.tnemc.plugincore.core.io.message.MessageData;
-import net.tnemc.plugincore.paper.impl.PaperCMDSource;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.Nullable;
@@ -178,7 +177,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.menu")
   public void onMyEco(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.AdminCommand.onMyEco(new PaperCMDSource(sender));
+    net.tnemc.core.command.AdminCommand.onMyEco(new PaperCommandSource(sender));
   }
 
   @Subcommand({ "help", "?" })
@@ -186,7 +185,7 @@ public class AdminCommand {
   @Description("Help.Description")
   public void help(final BukkitCommandActor actor, final Help.RelatedCommands<?> commands, @Default("1") final int page) {
 
-    BaseCommand.help(new PaperCMDSource(actor), commands, page);
+    BaseCommand.help(new PaperCommandSource(actor), commands, page);
   }
 
   @Subcommand({ "backup", "archive" })
@@ -195,7 +194,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.backup")
   public void backup(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.AdminCommand.onBackup(new PaperCMDSource(sender));
+    net.tnemc.core.command.AdminCommand.onBackup(new PaperCommandSource(sender));
   }
 
   @Subcommand({ "create", "add", "new", "make", "+" })
@@ -204,7 +203,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.create")
   public void create(final BukkitCommandActor sender, final String name) {
 
-    net.tnemc.core.command.AdminCommand.onCreate(new PaperCMDSource(sender), name);
+    net.tnemc.core.command.AdminCommand.onCreate(new PaperCommandSource(sender), name);
   }
 
   @Subcommand({ "debug" })
@@ -213,7 +212,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.debug")
   public void debug(final BukkitCommandActor sender, final DebugLevel level) {
 
-    net.tnemc.core.command.AdminCommand.onDebug(new PaperCMDSource(sender), level);
+    net.tnemc.core.command.AdminCommand.onDebug(new PaperCommandSource(sender), level);
   }
 
   @Subcommand({ "delete", "destroy", "del", "remove", "-" })
@@ -222,7 +221,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.delete")
   public void delete(final BukkitCommandActor sender, final String name) {
 
-    net.tnemc.core.command.AdminCommand.onDelete(new PaperCMDSource(sender), name);
+    net.tnemc.core.command.AdminCommand.onDelete(new PaperCommandSource(sender), name);
   }
 
   @Subcommand({ "extract" })
@@ -231,7 +230,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.extract")
   public void extract(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.AdminCommand.onExtract(new PaperCMDSource(sender));
+    net.tnemc.core.command.AdminCommand.onExtract(new PaperCommandSource(sender));
   }
 
   @Subcommand({ "purge" })
@@ -240,7 +239,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.purge")
   public void purge(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.AdminCommand.onPurge(new PaperCMDSource(sender));
+    net.tnemc.core.command.AdminCommand.onPurge(new PaperCommandSource(sender));
   }
 
   @Subcommand({ "reload" })
@@ -249,7 +248,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.reload")
   public void reload(final BukkitCommandActor sender, @Default("all") final String type) {
 
-    net.tnemc.core.command.AdminCommand.onReload(new PaperCMDSource(sender), type);
+    net.tnemc.core.command.AdminCommand.onReload(new PaperCommandSource(sender), type);
   }
 
   @Subcommand({ "reloaddb" })
@@ -258,7 +257,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.reloaddb")
   public void reloadDB(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.AdminCommand.onReloadDB(new PaperCMDSource(sender));
+    net.tnemc.core.command.AdminCommand.onReloadDB(new PaperCommandSource(sender));
   }
 
   @Subcommand({ "reset", "nuke" })
@@ -267,7 +266,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.reset")
   public void reset(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.AdminCommand.onReset(new PaperCMDSource(sender));
+    net.tnemc.core.command.AdminCommand.onReset(new PaperCommandSource(sender));
   }
 
   @Subcommand({ "restore" })
@@ -276,7 +275,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.restore")
   public void restore(final BukkitCommandActor sender, @Default("0") final int extraction) {
 
-    net.tnemc.core.command.AdminCommand.onRestore(new PaperCMDSource(sender), extraction);
+    net.tnemc.core.command.AdminCommand.onRestore(new PaperCommandSource(sender), extraction);
   }
 
   @Subcommand({ "old" })
@@ -286,7 +285,7 @@ public class AdminCommand {
   public void old(final BukkitCommandActor sender, @Default("0") final int extraction) {
 
     PluginCore.server().scheduler().createDelayedTask(()->restoreOld(extraction), new ChoreTime(0), ChoreExecution.SECONDARY);
-    new PaperCMDSource(sender).message(new MessageData("Messages.Admin.Restoration"));
+    new PaperCommandSource(sender).message(new MessageData("Messages.Admin.Restoration"));
   }
 
   @Subcommand({ "save" })
@@ -295,7 +294,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.save")
   public void save(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.AdminCommand.onSave(new PaperCMDSource(sender));
+    net.tnemc.core.command.AdminCommand.onSave(new PaperCommandSource(sender));
   }
 
   @Subcommand({ "status" })
@@ -304,7 +303,7 @@ public class AdminCommand {
   @CommandPermission("tne.admin.status")
   public void status(final BukkitCommandActor sender, final Account account, @Default("normal") final AccountStatus status) {
 
-    net.tnemc.core.command.AdminCommand.onStatus(new PaperCMDSource(sender), account, status);
+    net.tnemc.core.command.AdminCommand.onStatus(new PaperCommandSource(sender), account, status);
   }
 
   @Subcommand({ "version", "ver", "build" })
@@ -313,6 +312,6 @@ public class AdminCommand {
   @CommandPermission("tne.admin.version")
   public void version(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.AdminCommand.onVersion(new PaperCMDSource(sender));
+    net.tnemc.core.command.AdminCommand.onVersion(new PaperCommandSource(sender));
   }
 }

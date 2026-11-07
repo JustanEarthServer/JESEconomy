@@ -20,7 +20,6 @@ package net.tnemc.paper.command;
 
 import net.tnemc.core.account.Account;
 import net.tnemc.core.command.BaseCommand;
-import net.tnemc.plugincore.paper.impl.PaperCMDSource;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Default;
 import revxrsal.commands.annotation.Description;
@@ -48,7 +47,7 @@ public class TransactionCommand {
   @Description("Help.Description")
   public void help(final BukkitCommandActor actor, final Help.RelatedCommands<?> commands, @Default("1") final int page) {
 
-    BaseCommand.help(new PaperCMDSource(actor), commands, page);
+    BaseCommand.help(new PaperCommandSource(actor), commands, page);
   }
 
   @Subcommand({ "away", "gone", "afk", "afg" })
@@ -57,7 +56,7 @@ public class TransactionCommand {
   @CommandPermission("tne.transaction.away")
   public void away(final BukkitCommandActor sender, @Default("1") final int page) {
 
-    net.tnemc.core.command.TransactionCommand.away(new PaperCMDSource(sender), page);
+    net.tnemc.core.command.TransactionCommand.away(new PaperCommandSource(sender), page);
   }
 
   @Subcommand({ "history", "list", "hist", "archive" })
@@ -66,7 +65,7 @@ public class TransactionCommand {
   @CommandPermission("tne.transaction.history")
   public void history(final BukkitCommandActor sender, @Default("1") final int page, @Default("world-113") @Named("region") final String region, @Default("SELF_ACCOUNT") final Account account) {
 
-    net.tnemc.core.command.TransactionCommand.history(new PaperCMDSource(sender), page, region, account);
+    net.tnemc.core.command.TransactionCommand.history(new PaperCommandSource(sender), page, region, account);
   }
 
   @Subcommand({ "info", "i", "about", "brief" })
@@ -75,7 +74,7 @@ public class TransactionCommand {
   @CommandPermission("tne.info.history")
   public void info(final BukkitCommandActor sender, final UUID uuid) {
 
-    net.tnemc.core.command.TransactionCommand.info(new PaperCMDSource(sender), uuid);
+    net.tnemc.core.command.TransactionCommand.info(new PaperCommandSource(sender), uuid);
   }
 
   @Subcommand({ "void", "retract", "undo" })
@@ -84,6 +83,6 @@ public class TransactionCommand {
   @CommandPermission("tne.void.history")
   public void voidT(final BukkitCommandActor sender, final Account account, final UUID uuid) {
 
-    net.tnemc.core.command.TransactionCommand.voidT(new PaperCMDSource(sender), account, uuid);
+    net.tnemc.core.command.TransactionCommand.voidT(new PaperCommandSource(sender), account, uuid);
   }
 }

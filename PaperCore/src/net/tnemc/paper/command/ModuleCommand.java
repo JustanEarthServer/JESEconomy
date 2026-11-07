@@ -20,7 +20,6 @@ package net.tnemc.paper.command;
 
 import net.tnemc.core.TNECore;
 import net.tnemc.core.command.BaseCommand;
-import net.tnemc.plugincore.paper.impl.PaperCMDSource;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Default;
 import revxrsal.commands.annotation.Description;
@@ -44,7 +43,7 @@ public class ModuleCommand {
   @Description("Help.Description")
   public void help(final BukkitCommandActor actor, final Help.RelatedCommands<?> commands, @Default("1") final int page) {
 
-    BaseCommand.help(new PaperCMDSource(actor), commands, page);
+    BaseCommand.help(new PaperCommandSource(actor), commands, page);
   }
 
   @Subcommand({ "avail", "available" })
@@ -53,7 +52,7 @@ public class ModuleCommand {
   @CommandPermission("tne.module.available")
   public void onAvailable(final BukkitCommandActor sender, @Default(TNECore.coreURL) final String url) {
 
-    net.tnemc.core.command.ModuleCommand.onAvailable(new PaperCMDSource(sender), url);
+    net.tnemc.core.command.ModuleCommand.onAvailable(new PaperCommandSource(sender), url);
   }
 
   @Subcommand({ "download", "dl" })
@@ -62,7 +61,7 @@ public class ModuleCommand {
   @CommandPermission("tne.module.download")
   public void onDownload(final BukkitCommandActor sender, final String moduleName, @Default(TNECore.coreURL) final String url) {
 
-    net.tnemc.core.command.ModuleCommand.onDownload(new PaperCMDSource(sender), moduleName, url);
+    net.tnemc.core.command.ModuleCommand.onDownload(new PaperCommandSource(sender), moduleName, url);
   }
 
   @Subcommand({ "info", "i" })
@@ -71,7 +70,7 @@ public class ModuleCommand {
   @CommandPermission("tne.module.info")
   public void onInfo(final BukkitCommandActor sender, final String moduleName) {
 
-    net.tnemc.core.command.ModuleCommand.onInfo(new PaperCMDSource(sender), moduleName);
+    net.tnemc.core.command.ModuleCommand.onInfo(new PaperCommandSource(sender), moduleName);
   }
 
   @Subcommand({ "list", "l" })
@@ -81,7 +80,7 @@ public class ModuleCommand {
   @CommandPermission("tne.list.available")
   public void onList(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.ModuleCommand.onList(new PaperCMDSource(sender));
+    net.tnemc.core.command.ModuleCommand.onList(new PaperCommandSource(sender));
   }
 
   @Subcommand({ "load" })
@@ -90,6 +89,6 @@ public class ModuleCommand {
   @CommandPermission("tne.module.load")
   public void onLoad(final BukkitCommandActor sender, final String moduleName) {
 
-    net.tnemc.core.command.ModuleCommand.onLoad(new PaperCMDSource(sender), moduleName);
+    net.tnemc.core.command.ModuleCommand.onLoad(new PaperCommandSource(sender), moduleName);
   }
 }

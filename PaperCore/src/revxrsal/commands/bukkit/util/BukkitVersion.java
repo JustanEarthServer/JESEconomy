@@ -1,0 +1,196 @@
+package revxrsal.commands.bukkit.util;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static revxrsal.commands.util.Classes.isClassPresent;
+import static revxrsal.commands.util.Preconditions.cannotInstantiate;
+
+/**
+ * A utility for providing information about the server implementation
+ * and version
+ * <p>
+ * Patched copy of Lamp 4.0.0-rc.12 (MIT) that overrides the bundled class when the jar is shaded.
+ * The original parser crashes on the version format Paper uses since 26.1, e.g. "26.2.build.2633-stable".
+ */
+public final class BukkitVersion {
+
+    private static final boolean IS_PAPER;
+    private static final boolean SUPPORTS_ASYNC_COMPLETION;
+
+    private static final int MAJOR_VERSION, MINOR_VERSION, PATCH_NUMBER;
+
+    /**
+     * The current version string, for example v1_17_R1
+     */
+    private static final String VERSION = fetchVersion();
+
+    /**
+     * The version where NMS no longer uses versions in the package names
+     */
+    private static final int UNVERSION_NMS = 17;
+
+    /**
+     * The CraftBukkit package
+     */
+    private static final String CB_PACKAGE = Bukkit.getServer().getClass().getPackage().getName();
+
+    static {
+        String bukkitVersion = Bukkit.getServer().getBukkitVersion();
+        Matcher version = Pattern.compile("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?").matcher(bukkitVersion);
+        if (!version.find())
+            throw new IllegalStateException("Unrecognized server version: " + bukkitVersion);
+
+        MAJOR_VERSION = Integer.parseInt(version.group(1));
+        MINOR_VERSION = Integer.parseInt(version.group(2));
+        PATCH_NUMBER = version.group(3) == null ? 0 : Integer.parseInt(version.group(3));
+
+        IS_PAPER = isClassPresent("com.destroystokyo.paper.PaperConfig");
+        SUPPORTS_ASYNC_COMPLETION = isClassPresent("com.destroystokyo.paper.event.server.AsyncTabCompleteEvent");
+    }
+
+    private BukkitVersion() {
+        cannotInstantiate(BukkitVersion.class);
+    }
+
+    /**
+     * Returns the version of the server, e.g. v1_16_R2
+     *
+     * @return The server version
+     */
+    private static @NotNull String fetchVersion() {
+        Server server = Bukkit.getServer();
+        try {
+            String packageName = server.getClass().getPackage().getName();
+            return packageName.substring(packageName.lastIndexOf('.') + 1);
+        } catch (Throwable throwable) {
+            return "";
+        }
+    }
+
+    /**
+     * Tests whether is the given version supported by this server
+     */
+    public static boolean supports(int major, int minor) {
+        return supports(major, minor, 0);
+    }
+
+    /**
+     * Tests whether is the given version supported by this server
+     */
+    public static boolean supports(int major, int minor, int patch) {
+        if (MAJOR_VERSION > major) {
+            return true;
+        } else if (MAJOR_VERSION == major) {
+            if (MINOR_VERSION > minor) {
+                return true;
+            } else if (MINOR_VERSION == minor) {
+                return PATCH_NUMBER >= patch;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the major version for the current server. For example,
+     * in 1.11.2 this would be 11.
+     *
+     * @return The current version.
+     */
+    public static int minorVersion() {
+        return MINOR_VERSION;
+    }
+
+    /**
+     * Returns the patch number for the current server. For example,
+     * in 1.11.2 this would be 2.
+     *
+     * @return The current version.
+     */
+    public static int patchNumber() {
+        return PATCH_NUMBER;
+    }
+
+    /**
+     * Returns the current version string, for example v1_17_R1
+     *
+     * @return The current version string
+     */
+    public static @NotNull String version() {
+        return VERSION;
+    }
+
+    /**
+     * Returns the NMS class with the given name. The name must not contain
+     * the net.minecraft.server prefix.
+     */
+    public static @NotNull Class<?> findNmsClass(@NotNull String... names) {
+        for (String name : names) {
+            Class<?> c = classOrNull("net.minecraft.server." + name);
+            if (c != null)
+                return c;
+            c = classOrNull("net.minecraft.server." + VERSION + "." + name);
+            if (c != null)
+                return c;
+            c = classOrNull("net.minecraft." + name);
+            if (c != null)
+                return c;
+        }
+        throw new IllegalStateException("Class not found. Names searched: " + Arrays.toString(names) + ".");
+    }
+
+    /**
+     * Finds and returns the specified class from the CraftBukkit implementation.
+     *
+     * @param name The name of the class to find.
+     * @return The found class.
+     * @throws ClassNotFoundException If the class cannot be found.
+     */
+    public static @NotNull Class<?> findOcbClass(@NotNull String name) throws ClassNotFoundException {
+        return Class.forName(CB_PACKAGE + '.' + name);
+    }
+
+    /**
+     * Tests whether this version is running PaperSpigot
+     *
+     * @return If this is PaperSpigot
+     */
+    public static boolean isPaper() {
+        return IS_PAPER;
+    }
+
+    /**
+     * Tests whether this version supports asynchronous tab completion
+     *
+     * @return If this version supports asynchronous tab completion
+     */
+    public static boolean supportsAsyncCompletion() {
+        return SUPPORTS_ASYNC_COMPLETION;
+    }
+
+    /**
+     * Tests whether is brigadier supported or not
+     *
+     * @return if brigadier is supported or not
+     */
+    public static boolean isBrigadierSupported() {
+        if (supports(1, 19, 1))
+            return isPaper();
+        else
+            return supports(1, 13);
+    }
+
+    private static @Nullable Class<?> classOrNull(@NotNull String name) {
+        try {
+            return Class.forName(name);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+}

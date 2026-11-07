@@ -21,7 +21,6 @@ package net.tnemc.paper.command;
 import net.tnemc.core.account.Account;
 import net.tnemc.core.currency.Currency;
 import net.tnemc.core.currency.parser.ParseMoney;
-import net.tnemc.plugincore.paper.impl.PaperCMDSource;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Default;
 import revxrsal.commands.annotation.Description;
@@ -44,7 +43,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.give")
   public void onGive(final BukkitCommandActor sender, @Named("account") final Account player, @Named("amount") final ParseMoney parseMoney, @Default("") @Named("currency") final Currency currency, @Default("world-113") @Named("region") final String region) {
 
-    net.tnemc.core.command.MoneyCommand.onGive(new PaperCMDSource(sender), player, parseMoney, region, currency);
+    net.tnemc.core.command.MoneyCommand.onGive(new PaperCommandSource(sender), player, parseMoney, region, currency);
   }
 
   @Command({ "giveallmoney", "giveallbal" })
@@ -53,7 +52,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.giveall")
   public void onGiveAll(final BukkitCommandActor sender, @Named("amount") final ParseMoney amount, @Default("") @Named("currency") final Currency currency, @Default("world-113") @Named("region") final String region) {
 
-    net.tnemc.core.command.MoneyCommand.onGiveAll(new PaperCMDSource(sender), amount, region, currency);
+    net.tnemc.core.command.MoneyCommand.onGiveAll(new PaperCommandSource(sender), amount, region, currency);
   }
 
   @Command({ "givenote", "+note", "addnote" })
@@ -62,7 +61,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.givenote")
   public void onGiveNote(final BukkitCommandActor sender, final Account player, @Named("amount") final ParseMoney amount, @Default("") @Named("currency") final Currency currency) {
 
-    net.tnemc.core.command.MoneyCommand.onGiveNote(new PaperCMDSource(sender), player, amount, currency);
+    net.tnemc.core.command.MoneyCommand.onGiveNote(new PaperCommandSource(sender), player, amount, currency);
   }
 
   @Command({ "balmenu", "mybal" })
@@ -71,7 +70,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.mybal")
   public void onMyBal(final BukkitCommandActor sender) {
 
-    net.tnemc.core.command.MoneyCommand.onMyBal(new PaperCMDSource(sender));
+    net.tnemc.core.command.MoneyCommand.onMyBal(new PaperCommandSource(sender));
   }
 
   @Command({ "pay" })
@@ -80,7 +79,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.pay")
   public void onPay(final BukkitCommandActor sender, @Named("account") final Account player, @Named("amount") final ParseMoney amount, @Default("") @Named("currency") final Currency currency) {
 
-    net.tnemc.core.command.MoneyCommand.onPay(new PaperCMDSource(sender), player, amount, currency);
+    net.tnemc.core.command.MoneyCommand.onPay(new PaperCommandSource(sender), player, amount, currency);
   }
 
   @Command({ "setmoney", "setbal" })
@@ -89,7 +88,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.set")
   public void onSet(final BukkitCommandActor sender, @Named("account") final Account player, @Named("amount") final ParseMoney amount, @Default("") @Named("currency") final Currency currency, @Default("world-113") @Named("region") final String region) {
 
-    net.tnemc.core.command.MoneyCommand.onSet(new PaperCMDSource(sender), player, amount, region, currency);
+    net.tnemc.core.command.MoneyCommand.onSet(new PaperCommandSource(sender), player, amount, region, currency);
   }
 
   @Command({ "takemoney", "takebal" })
@@ -98,7 +97,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.take")
   public void onTake(final BukkitCommandActor sender, @Named("account") final Account player, @Named("amount") final ParseMoney amount, @Default("") @Named("currency") final Currency currency, @Default("world-113") @Named("region") final String region) {
 
-    net.tnemc.core.command.MoneyCommand.onTake(new PaperCMDSource(sender), player, amount, region, currency);
+    net.tnemc.core.command.MoneyCommand.onTake(new PaperCommandSource(sender), player, amount, region, currency);
   }
 
   @Command({ "bal", "money", "eco", "balance" })
@@ -107,7 +106,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.balance")
   public void onBalance(final BukkitCommandActor sender, @Default("") @Named("currency") final Currency currency, @Default("world-113") @Named("region") final String region) {
 
-    net.tnemc.core.command.MoneyCommand.onBalance(new PaperCMDSource(sender), currency, region);
+    net.tnemc.core.command.MoneyCommand.onBalance(new PaperCommandSource(sender), currency, region);
   }
 
   @Command({ "balo", "balanceother" })
@@ -116,7 +115,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.other")
   public void onOther(final BukkitCommandActor sender, final Account player, @Default("") @Named("currency") final Currency currency, @Default("world-113") @Named("region") final String region) {
 
-    net.tnemc.core.command.MoneyCommand.onOther(new PaperCMDSource(sender), player, region, currency);
+    net.tnemc.core.command.MoneyCommand.onOther(new PaperCommandSource(sender), player, region, currency);
   }
 
   @Command({ "baltop" })
@@ -125,7 +124,7 @@ public class ShortCommands {
   @CommandPermission("tne.money.top")
   public void onTop(final BukkitCommandActor sender, @Default("1") @Named("page") final Integer page, @Default("") @Named("currency") final Currency currency, @Default("false") final Boolean refresh) {
 
-    net.tnemc.core.command.MoneyCommand.onTop(new PaperCMDSource(sender), page, currency, refresh);
+    net.tnemc.core.command.MoneyCommand.onTop(new PaperCommandSource(sender), page, currency, refresh);
   }
 
   @Command({ "transactions" })
@@ -134,6 +133,6 @@ public class ShortCommands {
   @CommandPermission("tne.transaction.history")
   public void history(final BukkitCommandActor sender, @Default("1") final int page, @Default("world-113") @Named("region") final String region, @Default("SELF_ACCOUNT") final Account account) {
 
-    net.tnemc.core.command.TransactionCommand.history(new PaperCMDSource(sender), page, region, account);
+    net.tnemc.core.command.TransactionCommand.history(new PaperCommandSource(sender), page, region, account);
   }
 }
