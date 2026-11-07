@@ -32,7 +32,7 @@ import java.lang.reflect.Method;
  * NoClassDefFoundError on servers without MMOItems. This version looks MMOItems up by reflection
  * and simply reports "not an MMOItem" when the plugin is missing.
  *
- * @author CielDev
+ * @author ciel0beats
  * @since 0.1.5.0
  */
 public class MMOItemProvider implements ItemProvider<ItemStack> {

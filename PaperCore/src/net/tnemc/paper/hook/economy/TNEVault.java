@@ -342,6 +342,10 @@ public class TNEVault implements Economy {
   @Deprecated
   public EconomyResponse withdrawPlayer(final String name, final String world, final double amount) {
 
+    if(amount < 0 || !Double.isFinite(amount)) {
+      return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Cannot withdraw negative funds.");
+    }
+
     final Optional<Account> account = TNECore.eco().account().findAccount(name);
 
     if(account.isEmpty()) {
@@ -421,6 +425,10 @@ public class TNEVault implements Economy {
    */
   @Deprecated
   public EconomyResponse depositPlayer(final String name, final String world, final double amount) {
+
+    if(amount < 0 || !Double.isFinite(amount)) {
+      return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Cannot deposit negative funds.");
+    }
 
     final Optional<Account> account = TNECore.eco().account().findAccount(name);
 

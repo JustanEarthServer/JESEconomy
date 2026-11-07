@@ -428,6 +428,11 @@ public class MoneyCommand extends BaseCommand {
         return;
       }
 
+      if(parseMoney.amount().compareTo(BigDecimal.ZERO) <= 0) {
+        sender.message(new MessageData("Messages.Money.Negative"));
+        return;
+      }
+
       if(parseMoney.amount().compareTo(note.get().getMinimum()) < 0) {
         final MessageData min = new MessageData("Messages.Note.Minimum");
         min.addReplacement("$amount", note.get().getMinimum().toPlainString());
@@ -436,6 +441,11 @@ public class MoneyCommand extends BaseCommand {
       }
 
       final BigDecimal rounded = parseMoney.amount().setScale(parseMoney.currency().getDecimalPlaces(), RoundingMode.DOWN);
+
+      if(rounded.signum() <= 0) {
+        sender.message(new MessageData("Messages.Money.Negative"));
+        return;
+      }
 
       final BigDecimal amt = rounded.add(note.get().getFee().calculateTax(rounded)).setScale(parseMoney.currency().getDecimalPlaces(), RoundingMode.DOWN);
 

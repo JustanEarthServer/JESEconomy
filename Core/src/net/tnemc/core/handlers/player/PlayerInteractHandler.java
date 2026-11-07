@@ -38,6 +38,8 @@ import net.tnemc.plugincore.core.io.message.MessageData;
 import net.tnemc.plugincore.core.utils.HandlerResponse;
 
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -98,7 +100,25 @@ public class PlayerInteractHandler {
       final Optional<Currency> curObj = TNECore.eco().currency().find(currency);
       if(curObj.isEmpty() || curObj.get().getNote().isEmpty()) return response;
 
-      final BigDecimal value = new BigDecimal(amount);
+      final BigDecimal value;
+      try {
+        value = new BigDecimal(amount);
+      } catch(final NumberFormatException ignore) {
+        return response;
+      }
+
+      if(value.signum() <= 0) return response;
+
+      //This is a note claim, so stop the item from being used/placed as well.
+      response.setCancelled(true);
+
+      final AbstractItemStack<Object> note = curObj.get().getNote().get().stack(currency, region, value);
+
+      //Take the note before crediting anything. If it can't be removed, nothing is paid out.
+      if(PluginCore.server().calculations().removeItem(note, provider.identifier()) != 0) {
+        provider.message(new MessageData("Messages.Note.Failed"));
+        return response;
+      }
 
       final HoldingsModifier modifier = new HoldingsModifier(region, curObj.get().getUid(), value);
 
@@ -110,14 +130,7 @@ public class PlayerInteractHandler {
       try {
         final TransactionResult result = transaction.process();
 
-        if(!result.isSuccessful()) {
-          provider.message(new MessageData(result.getMessage()));
-          return response;
-        }
-
-        if(result.getReceipt().isPresent()) {
-
-          PluginCore.server().calculations().removeItem(curObj.get().getNote().get().stack(currency, region, value), provider.identifier());
+        if(result.isSuccessful() && result.getReceipt().isPresent()) {
 
           final MessageData claimed = new MessageData("Messages.Note.Claimed");
           claimed.addReplacement("$currency", currency);
@@ -125,11 +138,31 @@ public class PlayerInteractHandler {
           provider.message(claimed);
           return response;
         }
+
+        refundNote(note, provider);
+
+        if(!result.isSuccessful()) {
+          provider.message(new MessageData(result.getMessage()));
+          return response;
+        }
       } catch(final InvalidTransactionException e) {
+        refundNote(note, provider);
         e.printStackTrace();
       }
       provider.message(new MessageData("Messages.Note.Failed"));
     }
     return response;
+  }
+
+  /**
+   * Gives a note back to the player after a claim that didn't go through. Anything that doesn't
+   * fit is dropped at the player's feet.
+   */
+  private void refundNote(final AbstractItemStack<Object> note, final PlayerProvider provider) {
+
+    final Collection<AbstractItemStack<Object>> left = PluginCore.server().calculations().giveItems(Collections.singletonList(note), provider.identifier());
+    if(left != null && !left.isEmpty()) {
+      PluginCore.server().calculations().drop(left, provider.identifier(), false);
+    }
   }
 }

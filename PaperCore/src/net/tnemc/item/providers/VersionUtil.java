@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * Since 26.1, Paper reports versions like "26.2.build.2633", which semver4j rejects. The server
  * version is reduced to its leading numeric part ("26.2") before comparing.
  *
- * @author CielDev
+ * @author ciel0beats
  * @since 0.1.5.0
  */
 public class VersionUtil {

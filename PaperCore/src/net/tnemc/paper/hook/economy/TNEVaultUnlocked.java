@@ -418,6 +418,10 @@ public class TNEVaultUnlocked implements Economy {
 
     PluginCore.log().debug("Withdraw method called with PluginName: " + pluginName + ", UUID: " + uuid + ", WorldName: " + worldName + ", Currency: " + currencyId + ", Amount: " + amount, DebugLevel.STANDARD);
 
+    if(amount == null || amount.signum() < 0) {
+      return new EconomyResponse(BigDecimal.ZERO, BigDecimal.ZERO, ResponseType.FAILURE, "Cannot withdraw negative funds.");
+    }
+
     final Optional<Account> account = TNECore.eco().account().findAccount(uuid.toString());
     final Optional<Currency> currency = TNECore.eco().currency().find(currencyId);
 
@@ -467,6 +471,10 @@ public class TNEVaultUnlocked implements Economy {
   public @NotNull EconomyResponse deposit(final @NotNull String pluginName, final UUID uuid, final @NotNull String worldName, final @NotNull String currencyId, final @NotNull BigDecimal amount) {
 
     PluginCore.log().debug("Deposit method called with PluginName: " + pluginName + ", UUID: " + uuid + ", WorldName: " + worldName + ", Currency: " + currencyId + ", Amount: " + amount, DebugLevel.STANDARD);
+
+    if(amount == null || amount.signum() < 0) {
+      return new EconomyResponse(BigDecimal.ZERO, BigDecimal.ZERO, ResponseType.FAILURE, "Cannot deposit negative funds.");
+    }
 
     final Optional<Account> account = TNECore.eco().account().findAccount(uuid.toString());
     final Optional<Currency> currency = TNECore.eco().currency().find(currencyId);

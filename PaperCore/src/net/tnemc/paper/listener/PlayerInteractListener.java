@@ -49,7 +49,9 @@ public class PlayerInteractListener implements Listener {
     if(event.getAction().equals(Action.RIGHT_CLICK_AIR) ||
        event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 
-      new PlayerInteractHandler().handle(provider, new PaperItemStack().of(stack));
+      if(new PlayerInteractHandler().handle(provider, new PaperItemStack().of(stack)).isCancelled()) {
+        event.setCancelled(true);
+      }
     }
   }
 }
