@@ -19,7 +19,9 @@ package net.tnemc.bukkit.depend.towny;
  */
 
 import com.palmergames.bukkit.towny.TownyAPI;
+import com.palmergames.bukkit.towny.TownySettings;
 import net.tnemc.core.account.NonPlayerAccount;
+import net.tnemc.plugincore.PluginCore;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -36,7 +38,13 @@ public class NationAccount extends NonPlayerAccount {
 
     super(identifier, name);
 
-    this.identifier = identifier;
+    final UUID nationID = generateIdentifier(name);
+
+    this.identifier = nationID;
+
+    this.receiptOwner = nationID;
+
+    PluginCore.log().debug("Nation Account created with Name: " + name + " and UUID: " + nationID + ".");
     //this.owner = Objects.requireNonNull(TownyAPI.getInstance().getNation(name)).getKing().getUUID();
   }
 
@@ -55,8 +63,15 @@ public class NationAccount extends NonPlayerAccount {
   public UUID generateIdentifier(final String name) {
 
     try {
-      return Objects.requireNonNull(TownyAPI.getInstance().getNation(name)).getUUID();
+
+      PluginCore.log().debug("Generating Nation UUID for: " + name + ".");
+      final UUID nationID = Objects.requireNonNull(TownyAPI.getInstance().getNation(name.replace(TownySettings.getNationAccountPrefix(), ""))).getUUID();
+
+      PluginCore.log().debug("Generated Nation UUID: " + nationID + ".");
+      return nationID;
     } catch(final Exception ignore) {
+
+      PluginCore.log().debug("Failed to generate Nation UUID for: " + name + ".");
       return super.generateIdentifier(name);
     }
   }

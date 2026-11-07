@@ -19,14 +19,17 @@ package net.tnemc.bukkit;
  */
 
 import net.tnemc.bukkit.command.AdminCommand;
+import net.tnemc.bukkit.command.CurrencyMoneyCommand;
 import net.tnemc.bukkit.command.ModuleCommand;
 import net.tnemc.bukkit.command.MoneyCommand;
 import net.tnemc.bukkit.command.ShortCommands;
 import net.tnemc.bukkit.command.TransactionCommand;
 import net.tnemc.bukkit.depend.faction.FactionHandler;
+import net.tnemc.bukkit.depend.towny.TownyCommand;
 import net.tnemc.bukkit.depend.towny.TownyHandler;
 import net.tnemc.core.TNECore;
 import net.tnemc.core.api.callback.TNECallbacks;
+import net.tnemc.core.currency.Currency;
 import net.tnemc.menu.bukkit.BukkitMenuHandler;
 import net.tnemc.plugincore.PluginCore;
 import net.tnemc.plugincore.core.api.CallbackManager;
@@ -35,6 +38,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.bukkit.BukkitLamp;
 import revxrsal.commands.command.CommandActor;
 import revxrsal.commands.command.ExecutableCommand;
+import revxrsal.commands.orphan.Orphans;
 
 /**
  * BukkitCore
@@ -101,6 +105,20 @@ public class BukkitCore extends TNECore {
     command.register(new ModuleCommand());
     command.register(new MoneyCommand());
     command.register(new TransactionCommand());
+
+    for(final Currency currency : TNECore.eco().currency().currencies()) {
+
+      if(!currency.commandSet()) continue;
+
+      command.register(Orphans.path(currency.getIdentifier().toLowerCase()).handler(new CurrencyMoneyCommand(currency)));
+    }
+
+
+    if(Bukkit.getPluginManager().getPlugin("Towny") != null) {
+
+      command.register(Orphans.path("tne").handler(new TownyCommand()));
+    }
+
   }
 
   @Override

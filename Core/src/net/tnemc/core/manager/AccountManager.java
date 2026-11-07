@@ -218,6 +218,7 @@ public class AccountManager {
       return new AccountAPIResponse(account, AccountResponse.CREATION_FAILED_PLUGIN);
     }
 
+    PluginCore.log().debug("Adding account to Accounts Map. ID: " + identifier + " Name: " + name);
     accounts.put(account.getIdentifier().toString(), account);
 
     if(!skipDB) {
@@ -229,6 +230,7 @@ public class AccountManager {
     } catch(final Exception ignore) {
       //identifier isn't an uuid, so it'll be a string, most likely a non-player.
     }
+    PluginCore.log().debug("Created Account: " + account.getIdentifier().toString() + " Name: " + account.getName());
     return new AccountAPIResponse(account, AccountResponse.CREATED);
   }
 
@@ -255,8 +257,10 @@ public class AccountManager {
 
       if(entry.getValue().apply(name)) {
         try {
-          return Optional.of(entry.getKey().getDeclaredConstructor(UUID.class, String.class)
-                                     .newInstance(uuid, name));
+
+          final SharedAccount account = entry.getKey().getDeclaredConstructor(UUID.class, String.class).newInstance(uuid, name);
+
+          return Optional.of(account);
         } catch(final Exception e) {
           PluginCore.log().error("An error occured while trying to create a new NonPlayer Account" +
                                  "for : " + name, e, DebugLevel.STANDARD);
@@ -290,13 +294,25 @@ public class AccountManager {
   public EconomyResponse deleteAccount(@NotNull final String identifier) {
 
     if(!accounts.containsKey(identifier)) {
+      PluginCore.log().debug("Account Doesn't Exist: " + identifier);
       return AccountResponse.DOESNT_EXIST;
     }
 
     final AccountDeleteCallback callback = new AccountDeleteCallback(identifier);
     PluginCore.callbacks().call(callback);
 
-    accounts.remove(identifier);
+    try {
+
+      final UUID id = UUID.fromString(identifier);
+
+      uuidProvider.pairs().remove(id);
+      accounts.remove(identifier);
+      PluginCore.log().debug("Deleting account: " + identifier);
+      TNECore.instance().storage().delete(Account.class, identifier);
+    } catch(final Exception ignore) {
+
+      PluginCore.log().debug("Failed to delete account: " + identifier);
+    }
     return AccountResponse.DELETED;
   }
 

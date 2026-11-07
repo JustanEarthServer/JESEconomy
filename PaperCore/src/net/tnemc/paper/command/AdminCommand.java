@@ -99,6 +99,7 @@ public class AdminCommand {
         UUID id = get(username);
         if(id == null) {
           nonPlayer = true;
+
           id = UUID.randomUUID();
         }
 
@@ -161,11 +162,10 @@ public class AdminCommand {
 
   protected static UUID get(final String name) {
 
-    for(final OfflinePlayer player : Bukkit.getServer().getOfflinePlayers()) {
-      if(player.getName() == null) continue;
-      if(player.getName().equalsIgnoreCase(name)) {
-        return player.getUniqueId();
-      }
+    final OfflinePlayer player = Bukkit.getServer().getOfflinePlayerIfCached(name);
+    if(player != null) {
+
+      return player.getUniqueId();
     }
     return null;
   }
@@ -304,6 +304,14 @@ public class AdminCommand {
   public void status(final BukkitCommandActor sender, final Account account, @Default("normal") final AccountStatus status) {
 
     net.tnemc.core.command.AdminCommand.onStatus(new PaperCommandSource(sender), account, status);
+  }
+
+  @Subcommand({ "towny" })
+  @Usage("")
+  @Description("Used to realign old towny data with the new enhanced data for when you're using VaultUnlocked")
+  @CommandPermission("tne.admin.towny")
+  public void towny(final BukkitCommandActor sender) {
+
   }
 
   @Subcommand({ "version", "ver", "build" })

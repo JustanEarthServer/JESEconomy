@@ -23,12 +23,15 @@ import net.tnemc.bukkit.depend.faction.FactionHandler;
 import net.tnemc.bukkit.depend.towny.TownyHandler;
 import net.tnemc.core.TNECore;
 import net.tnemc.core.api.callback.TNECallbacks;
+import net.tnemc.core.currency.Currency;
 import net.tnemc.menu.paper.PaperMenuHandler;
 import net.tnemc.paper.command.AdminCommand;
+import net.tnemc.paper.command.CurrencyMoneyCommand;
 import net.tnemc.paper.command.ModuleCommand;
 import net.tnemc.paper.command.MoneyCommand;
 import net.tnemc.paper.command.ShortCommands;
 import net.tnemc.paper.command.TransactionCommand;
+import net.tnemc.paper.hook.towny.TownyCommand;
 import net.tnemc.plugincore.PluginCore;
 import net.tnemc.plugincore.core.api.CallbackManager;
 import org.bukkit.Bukkit;
@@ -36,6 +39,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.bukkit.BukkitLamp;
 import revxrsal.commands.command.CommandActor;
 import revxrsal.commands.command.ExecutableCommand;
+import revxrsal.commands.orphan.Orphans;
 
 /**
  * PaperCore
@@ -99,12 +103,26 @@ public class PaperCore extends TNECore {
     command.register(new ModuleCommand());
     command.register(new MoneyCommand());
     command.register(new TransactionCommand());
+
+    for(final Currency currency : TNECore.eco().currency().currencies()) {
+
+      if(!currency.commandSet()) continue;
+
+      command.register(Orphans.path(currency.getIdentifier().toLowerCase()).handler(new CurrencyMoneyCommand(currency)));
+    }
+
+
+    if(Bukkit.getPluginManager().getPlugin("Towny") != null) {
+
+      command.register(Orphans.path("tne").handler(new TownyCommand()));
+    }
   }
 
   @Override
   public void registerCallbacks(final CallbackManager callbackManager) {
 
     super.registerCallbacks(callbackManager);
+
     callbackManager.addConsumer(TNECallbacks.ACCOUNT_TYPES.id(), (callback->{
 
       if(Bukkit.getPluginManager().getPlugin("Towny") != null) {

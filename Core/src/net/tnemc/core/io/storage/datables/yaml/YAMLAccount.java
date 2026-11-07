@@ -29,7 +29,6 @@ import net.tnemc.core.account.shared.Member;
 import net.tnemc.core.api.callback.account.AccountLoadCallback;
 import net.tnemc.core.api.callback.account.AccountSaveCallback;
 import net.tnemc.core.api.response.AccountAPIResponse;
-import net.tnemc.core.utils.MISCUtils;
 import net.tnemc.plugincore.PluginCore;
 import net.tnemc.plugincore.core.compatibility.log.DebugLevel;
 import net.tnemc.plugincore.core.id.UUIDPair;
@@ -175,6 +174,19 @@ public class YAMLAccount implements Datable<Account> {
 
     for(final Account account : TNECore.eco().account().getAccounts().values()) {
       store(connector, account, account.getIdentifier().toString());
+    }
+  }
+
+  @Override
+  public void delete(final StorageConnector<?> connector, @NotNull final String identifier) {
+
+    PluginCore.log().debug("Deleting Account with ID: " + identifier, DebugLevel.STANDARD);
+
+    final String file = "accounts/" + identifier + ".yml";
+
+    final File accFile = new File(PluginCore.directory(), file);
+    if(accFile.exists()) {
+      accFile.delete();
     }
   }
 

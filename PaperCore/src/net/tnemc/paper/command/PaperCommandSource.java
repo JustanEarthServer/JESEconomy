@@ -27,7 +27,7 @@ import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import java.util.Optional;
 
 /**
- * Command source that messages through Paper's native Adventure support. Replaces PaperCMDSource,
+ * Command source that messages through Paper's native Adventure support. Replaces PaperCommandSource,
  * which goes through adventure-platform-bukkit and breaks on Adventure 5.
  *
  * @author CielDev
