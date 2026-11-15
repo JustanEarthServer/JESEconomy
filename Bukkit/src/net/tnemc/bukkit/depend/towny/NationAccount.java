@@ -20,10 +20,12 @@ package net.tnemc.bukkit.depend.towny;
 
 import com.palmergames.bukkit.towny.TownyAPI;
 import com.palmergames.bukkit.towny.TownySettings;
+import com.palmergames.bukkit.towny.object.Nation;
 import net.tnemc.core.account.NonPlayerAccount;
 import net.tnemc.plugincore.PluginCore;
 
-import java.util.Objects;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -34,18 +36,17 @@ import java.util.UUID;
  */
 public class NationAccount extends NonPlayerAccount {
 
+  /**
+   * The identifier passed in is always kept. Nation accounts used to replace it with the UUID of
+   * whichever nation currently has this name, which made every account file with the same name
+   * load into the same account and overwrite each other's balance. Name based lookups are resolved
+   * to the current nation's UUID before the account is created instead, see {@link TownyHandler}.
+   */
   public NationAccount(final UUID identifier, final String name) {
 
     super(identifier, name);
 
-    final UUID nationID = generateIdentifier(name);
-
-    this.identifier = nationID;
-
-    this.receiptOwner = nationID;
-
-    PluginCore.log().debug("Nation Account created with Name: " + name + " and UUID: " + nationID + ".");
-    //this.owner = Objects.requireNonNull(TownyAPI.getInstance().getNation(name)).getKing().getUUID();
+    PluginCore.log().debug("Nation Account created with Name: " + name + " and UUID: " + identifier + ".");
   }
 
   /**
@@ -59,20 +60,34 @@ public class NationAccount extends NonPlayerAccount {
     return "nation";
   }
 
-  @Override
-  public UUID generateIdentifier(final String name) {
+  /**
+   * Finds the UUID of the nation that currently exists in Towny with this account name.
+   *
+   * @param name The account name, e.g. "nation-Asia".
+   *
+   * @return The nation's UUID, or empty if no such nation exists right now.
+   */
+  public static Optional<UUID> currentNation(final String name) {
 
     try {
 
-      PluginCore.log().debug("Generating Nation UUID for: " + name + ".");
-      final UUID nationID = Objects.requireNonNull(TownyAPI.getInstance().getNation(name.replace(TownySettings.getNationAccountPrefix(), ""))).getUUID();
+      final String prefix = TownySettings.getNationAccountPrefix();
+      if(name == null || !name.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT))) {
+        return Optional.empty();
+      }
 
-      PluginCore.log().debug("Generated Nation UUID: " + nationID + ".");
-      return nationID;
-    } catch(final Exception ignore) {
+      final Nation nation = TownyAPI.getInstance().getNation(name.substring(prefix.length()));
+      return (nation == null)? Optional.empty() : Optional.of(nation.getUUID());
+    } catch(final Throwable ignore) {
 
-      PluginCore.log().debug("Failed to generate Nation UUID for: " + name + ".");
-      return super.generateIdentifier(name);
+      //Towny isn't enabled yet, or something went wrong enabling it.
+      return Optional.empty();
     }
+  }
+
+  @Override
+  public UUID generateIdentifier(final String name) {
+
+    return currentNation(name).orElse(identifier);
   }
 }

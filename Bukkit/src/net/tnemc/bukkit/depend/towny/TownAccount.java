@@ -20,11 +20,12 @@ package net.tnemc.bukkit.depend.towny;
 
 import com.palmergames.bukkit.towny.TownyAPI;
 import com.palmergames.bukkit.towny.TownySettings;
+import com.palmergames.bukkit.towny.object.Town;
 import net.tnemc.core.account.NonPlayerAccount;
-import net.tnemc.core.utils.MISCUtils;
 import net.tnemc.plugincore.PluginCore;
 
-import java.util.Objects;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -35,18 +36,43 @@ import java.util.UUID;
  */
 public class TownAccount extends NonPlayerAccount {
 
+  /**
+   * The identifier passed in is always kept. Town accounts used to replace it with the UUID of
+   * whichever town currently has this name, which made every account file with the same name
+   * (old copies, towns that fell and were refounded) load into the same account and overwrite
+   * each other's balance. Name based lookups are resolved to the current town's UUID before the
+   * account is created instead, see {@link TownyHandler}.
+   */
   public TownAccount(final UUID identifier, final String name) {
 
     super(identifier, name);
 
-    final UUID townID = generateIdentifier(name);
+    PluginCore.log().debug("Town Account created with Name: " + name + " and UUID: " + identifier + ".");
+  }
 
-    this.identifier = townID;
+  /**
+   * Finds the UUID of the town that currently exists in Towny with this account name.
+   *
+   * @param name The account name, e.g. "town-Constantinople".
+   *
+   * @return The town's UUID, or empty if no such town exists right now.
+   */
+  public static Optional<UUID> currentTown(final String name) {
 
-    this.receiptOwner = townID;
+    try {
 
-    PluginCore.log().debug("Town Account created with Name: " + name + " and UUID: " + townID + ".");
-    //this.owner = Objects.requireNonNull(TownyAPI.getInstance().getTown(name)).getMayor().getUUID();
+      final String prefix = TownySettings.getTownAccountPrefix();
+      if(name == null || !name.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT))) {
+        return Optional.empty();
+      }
+
+      final Town town = TownyAPI.getInstance().getTown(name.substring(prefix.length()));
+      return (town == null)? Optional.empty() : Optional.of(town.getUUID());
+    } catch(final Throwable ignore) {
+
+      //Towny isn't enabled yet, or something went wrong enabling it.
+      return Optional.empty();
+    }
   }
 
   /**
@@ -63,17 +89,6 @@ public class TownAccount extends NonPlayerAccount {
   @Override
   public UUID generateIdentifier(final String name) {
 
-    try {
-
-      PluginCore.log().debug("Generating Town UUID for: " + name + ".");
-      final UUID townID = Objects.requireNonNull(TownyAPI.getInstance().getTown(name.replace(TownySettings.getTownAccountPrefix(), ""))).getUUID();
-
-      PluginCore.log().debug("Generated Town UUID: " + townID + ".");
-      return townID;
-    } catch(final Exception ignore) {
-
-      PluginCore.log().debug("Failed to generate Town UUID for: " + name + ".");
-      return super.generateIdentifier(name);
-    }
+    return currentTown(name).orElse(identifier);
   }
 }

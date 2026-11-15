@@ -43,9 +43,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * YAMLAccount
@@ -54,6 +56,23 @@ import java.util.UUID;
  * @since 0.1.2.0
  */
 public class YAMLAccount implements Datable<Account> {
+
+  /**
+   * When each account file was last saved, captured before loading (loading rewrites files).
+   * Used to tell which of several copies of an account was the one in use.
+   */
+  private static final Map<String, Long> LAST_SAVED = new ConcurrentHashMap<>();
+
+  /**
+   * @param identifier The account identifier.
+   *
+   * @return When the account's file was last saved before this startup, if known.
+   */
+  public static Optional<Long> lastSaved(final String identifier) {
+
+    return Optional.ofNullable(LAST_SAVED.get(identifier.toLowerCase(Locale.ROOT)));
+  }
+
 
   /**
    * The class that is represented by the O parameter.
@@ -240,6 +259,15 @@ public class YAMLAccount implements Datable<Account> {
                                                                                     yaml.getString("Info.Name"),
                                                                                     !(type.equalsIgnoreCase("player") ||
                                                                                       type.equalsIgnoreCase("bedrock")));
+          if(response.getAccount().isPresent() && !response.getAccount().get().getIdentifier().toString().equalsIgnoreCase(identifier)) {
+
+            //This file resolved to a different, already loaded account. Loading it would replace
+            //that account's balance with this file's, so leave it alone.
+            PluginCore.log().error("Account file " + identifier + " (" + yaml.getString("Info.Name") + ") maps to existing account "
+                                   + response.getAccount().get().getIdentifier() + ". Skipping it, the file was not changed.", DebugLevel.OFF);
+            return Optional.empty();
+          }
+
           if(response.getResponse().success() && response.getAccount().isPresent()) {
 
             //load our basic account information
@@ -308,6 +336,7 @@ public class YAMLAccount implements Datable<Account> {
     for(final File file : IOUtil.getYAMLs(new File(PluginCore.directory(), "accounts"))) {
 
       try {
+        LAST_SAVED.put(file.getName().replace(".yml", "").toLowerCase(Locale.ROOT), file.lastModified());
         final Optional<Account> loaded = load(file, file.getName().replace(".yml", ""));
         if(loaded.isPresent()) {
           accounts.add(loaded.get());

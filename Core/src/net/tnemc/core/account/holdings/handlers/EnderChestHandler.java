@@ -56,6 +56,17 @@ public class EnderChestHandler implements HoldingsHandler {
   }
 
   /**
+   * This handler stores its own wallet entry in setHoldings, after reading the previous value for
+   * the offline change ledger. If CurrencyType stored it first, every offline change would be
+   * recorded as zero and be lost when the player joins.
+   */
+  @Override
+  public boolean database() {
+
+    return false;
+  }
+
+  /**
    * Used to determine if this handler may be used for the specified {@link CurrencyType}.
    *
    * @param type The currency type.

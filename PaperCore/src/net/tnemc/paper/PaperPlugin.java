@@ -17,6 +17,7 @@ package net.tnemc.paper;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import net.tnemc.bukkit.depend.towny.TownyAccountRepair;
 import net.tnemc.bukkit.hook.misc.PlaceHolderRule;
 import net.tnemc.bukkit.listeners.entity.EntityKilledListener;
 import net.tnemc.bukkit.listeners.player.PlayerCloseInventoryListener;
@@ -37,6 +38,7 @@ import net.tnemc.paper.listener.PlayerInteractListener;
 import net.tnemc.paper.listener.inventory.ItemCraftListener;
 import net.tnemc.plugincore.PluginCore;
 import net.tnemc.plugincore.core.compatibility.ServerConnector;
+import net.tnemc.plugincore.core.compatibility.log.DebugLevel;
 import net.tnemc.plugincore.paper.PaperPluginCore;
 import net.tnemc.plugincore.paper.impl.PaperServerProvider;
 import org.bstats.bukkit.Metrics;
@@ -127,6 +129,18 @@ public class PaperPlugin {
       CurrencyFormatter.addRule(new PlaceHolderRule());
     } else {
       Bukkit.getPluginManager().registerEvents(new PluginEnableListener(), plugin);
+    }
+
+    //One-time repair of duplicated Towny bank accounts. Runs on the first tick, after every plugin
+    //(Towny included) has enabled and loaded its data.
+    if(Bukkit.getPluginManager().getPlugin("Towny") != null) {
+      Bukkit.getScheduler().runTask(plugin, ()->{
+        try {
+          TownyAccountRepair.runOnce();
+        } catch(final Throwable e) {
+          PluginCore.log().error("Towny account repair failed, nothing was marked as done: " + e.getMessage(), DebugLevel.OFF);
+        }
+      });
     }
 
     final Metrics metrics = new Metrics(plugin, 602);

@@ -32,5 +32,9 @@ public class TownyHandler {
 
     TNECore.eco().account().addAccountType(TownAccount.class, new TownCheck().check());
     TNECore.eco().account().addAccountType(NationAccount.class, new NationCheck().check());
+
+    //Account names like "town-Name" always belong to the town/nation that has that name right now.
+    TNECore.eco().account().addNameResolver(TownAccount::currentTown);
+    TNECore.eco().account().addNameResolver(NationAccount::currentNation);
   }
 }

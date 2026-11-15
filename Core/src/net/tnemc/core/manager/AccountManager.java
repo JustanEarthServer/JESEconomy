@@ -82,6 +82,43 @@ public class AccountManager {
   private final LinkedHashMap<Class<? extends SharedAccount>, Function<String, Boolean>> types = new LinkedHashMap<>();
 
   /**
+   * Resolves account names to the UUID of whatever currently owns them, e.g. "town-Name" to the
+   * UUID of the Towny town that has that name right now.
+   */
+  private final List<Function<String, Optional<UUID>>> nameResolvers = new ArrayList<>();
+
+  /**
+   * Adds a resolver used to map account names to the UUID of their current owner.
+   *
+   * @param resolver Returns the owner's UUID for a name, or empty if it doesn't handle the name.
+   */
+  public void addNameResolver(final Function<String, Optional<UUID>> resolver) {
+
+    nameResolvers.add(resolver);
+  }
+
+  /**
+   * Resolves an account name to the UUID of its current owner using the registered resolvers.
+   *
+   * @param name The account name.
+   *
+   * @return The owner's UUID, or empty if no resolver handles the name.
+   */
+  public Optional<UUID> resolveName(final String name) {
+
+    if(name == null) return Optional.empty();
+
+    for(final Function<String, Optional<UUID>> resolver : nameResolvers) {
+
+      final Optional<UUID> id = resolver.apply(name);
+      if(id != null && id.isPresent()) {
+        return id;
+      }
+    }
+    return Optional.empty();
+  }
+
+  /**
    * Used to create a new non-player account based on the provided name.
    *
    * @param name The name to use for this account.
@@ -213,6 +250,16 @@ public class AccountManager {
       account = nonPlayerAccount.get();
     }
 
+    //Never replace an account that is already loaded. Overwriting it here used to silently swap a
+    //balance for whatever the new copy held.
+    final Account existing = accounts.get(account.getIdentifier().toString());
+    if(existing != null) {
+
+      PluginCore.log().error("Account " + account.getIdentifier() + " (" + name + ") already exists, not replacing it."
+                             + " Requested identifier: " + identifier, DebugLevel.STANDARD);
+      return new AccountAPIResponse(existing, AccountResponse.ALREADY_EXISTS);
+    }
+
     final AccountCreateCallback callback = new AccountCreateCallback(account);
     if(PluginCore.callbacks().call(callback)) {
       return new AccountAPIResponse(account, AccountResponse.CREATION_FAILED_PLUGIN);
@@ -245,12 +292,15 @@ public class AccountManager {
    */
   public Optional<SharedAccount> createNonPlayerAccount(final String identifier, final String name) {
 
-    UUID uuid = UUID.randomUUID();
+    UUID uuid;
 
     try {
       uuid = UUID.fromString(identifier);
     } catch(final Exception ignore) {
-      //stay with the random UUID if the identifier passed isn't a UUID.
+
+      //No UUID was passed (e.g. a plugin using an account name such as "town-Name"), so use the
+      //UUID of whatever currently owns that name, falling back to a random UUID.
+      uuid = resolveName(name).orElseGet(UUID::randomUUID);
     }
 
     for(final Map.Entry<Class<? extends SharedAccount>, Function<String, Boolean>> entry : types.entrySet()) {
@@ -363,6 +413,13 @@ public class AccountManager {
     final Account account = accounts.get(identifier);
     if(account != null) {
       return Optional.of(account);
+    }
+
+    //Names owned by something that exists right now (e.g. a Towny town) always go to its current
+    //UUID. Otherwise an account left behind by a deleted town with the same name could be found.
+    final Optional<UUID> owner = resolveName(identifier);
+    if(owner.isPresent()) {
+      return Optional.ofNullable(accounts.get(owner.get().toString()));
     }
 
     final Optional<UUIDPair> id = uuidProvider.retrieve(identifier);
